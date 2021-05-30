@@ -4,9 +4,11 @@
                    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
                    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                    xmlns:local="clr-namespace:mprElevations.View"
+                   xmlns:vm="clr-namespace:mprElevations.ViewModels"
                    xmlns:mps="https://modplus.org/winfx/xaml/controls"
-                   mc:Ignorable="d"
-                   Title="SettingsWindow" Height="450" Width="800">
+                   SizeToContent="Height" Name="Window"
+                   d:DataContext="{d:DesignInstance vm:MainContext}" mc:Ignorable="d"
+                   Title="SettingsWindow" Width="450">
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -15,7 +17,89 @@
             <XmlDataProvider x:Key="Lang" Source="E:/ModPlus/Languages/en-US.xml" XPath="ModPlus/mprElevations"/>
         </ResourceDictionary>
     </Window.Resources>
+    
     <Grid>
         
+        <Grid.RowDefinitions>
+            <RowDefinition Height="50"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="50"/>
+        </Grid.RowDefinitions>
+        
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="100"/>
+            <ColumnDefinition Width="250"/>
+            <ColumnDefinition Width="100"/>
+        </Grid.ColumnDefinitions>
+
+        <TextBlock 
+                Grid.Row="0"
+                Grid.Column="0"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                FontSize="14"
+                FontWeight="Bold"
+                Text="Выбор"
+                TextWrapping="Wrap"/>
+
+        <TextBlock 
+                Grid.Row="0"
+                Grid.Column="1"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                FontSize="14"
+                FontWeight="Bold"
+                Text="Имя категории"/>
+
+        <Border
+            BorderBrush="Black"
+            BorderThickness="2"
+            Margin="5"
+            CornerRadius="5"
+            Grid.Row="1"
+            Grid.ColumnSpan="3">
+            <ListBox 
+                Name="list"
+                ItemsSource="{Binding CategoryModelList}"
+                SelectionMode="Extended">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Horizontal">
+                            <CheckBox IsChecked="{Binding IsChoose}"/>
+
+                            <TextBlock 
+                                    Text="{Binding Name}" 
+                                    Grid.Column="1"
+                                    VerticalAlignment="Center"
+                                    TextWrapping="Wrap"
+                                    Width="330"/>
+                        </StackPanel>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+        </Border>
+
+        <Button 
+            Grid.Row="3"
+            Grid.Column="2"
+            Content="Отмена" 
+            Command="{Binding CancelCommand}" 
+            CommandParameter="{Binding ElementName=Window}"/>
+
+        <Button 
+            Grid.Row="3"
+            Grid.Column="0"
+            Content="Принять"  
+            Command="{Binding ApplyCommand}" 
+            CommandParameter="{Binding ElementName=Window}"/>
+
+        <CheckBox 
+            HorizontalAlignment="Center"
+            Grid.Row="3"
+            Grid.Column="1"
+            Content="Выбрать все"
+            Command="{Binding SelectAll}"
+            CommandParameter="{Binding ElementName=Window}"/>
+
     </Grid>
 </mps:ModPlusWindow>
