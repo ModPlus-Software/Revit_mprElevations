@@ -1,20 +1,13 @@
 ﻿namespace mprElevations.Models
 {
-    using System;
-    using System.ComponentModel;
     using Autodesk.Revit.DB;
+    using ModPlusAPI.Mvvm;
 
     /// <summary>
     /// Модель представления категории
     /// </summary>
-    public class CategoryModel : ICloneable
+    public class CategoryModel : VmBase
     {
-        /// <summary>
-        /// Вызов события уведомления
-        /// </summary>
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        private bool _isChoose { get; set; }
 
         /// <summary>
         /// Текстовое представление имени категории
@@ -35,23 +28,10 @@
             set
             {
                 _isChoose = value;
-                NotifyPropertyChanged();
+                OnPropertyChanged();
             }
         }
 
-        private void NotifyPropertyChanged(string propertyName = "")
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-
-        public object Clone()
-        {
-            return new CategoryModel()
-            {
-                IsChoose = _isChoose,
-                ElementCategory = ElementCategory,
-                Name = Name
-            };
-        }
+        private bool _isChoose;
     }
 }

@@ -84,14 +84,14 @@
             Grid.Column="2"
             Content="Отмена" 
             Command="{Binding CancelCommand}" 
-            CommandParameter="{Binding ElementName=Window}"/>
+            CommandParameter="{Binding ElementName=Window}" Click="Button_Cancel_Click"/>
 
         <Button 
             Grid.Row="3"
             Grid.Column="0"
             Content="Принять"  
             Command="{Binding ApplyCommand}" 
-            CommandParameter="{Binding ElementName=Window}"/>
+            CommandParameter="{Binding ElementName=Window}" Click="Button_Apply_Click"/>
 
         <CheckBox 
             HorizontalAlignment="Center"
@@ -99,7 +99,7 @@
             Grid.Column="1"
             Content="Выбрать все"
             Command="{Binding SelectAll}"
-            CommandParameter="{Binding ElementName=Window}"/>
+            CommandParameter="{Binding ElementName=Window}" Checked="CheckBox_Checked"/>
 
     </Grid>
 </mps:ModPlusWindow>

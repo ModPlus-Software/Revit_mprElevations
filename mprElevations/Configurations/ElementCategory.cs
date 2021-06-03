@@ -24,7 +24,7 @@
         {
             Name = name;
             DisplayName = displayName;
-            BuiltInCategory = BuiltInCategory;
+            BuiltInCategory = builtInCategory;
             Note = note;
         }
 
