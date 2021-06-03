@@ -6,18 +6,19 @@
     /// <summary>
     /// Класс селектора для выбора элементов
     /// </summary>
-    class SelectionFilter : ISelectionFilter
+    public class SelectionFilter : ISelectionFilter
     {
+        /// <inheritdoc/>
         public bool AllowElement(Element elem)
         {
             if (elem is FamilyInstance)
                 return true;
-            else if (elem is Group)
+            if (elem is Group)
                 return false;
-            else
-                return true;
+            return true;
         }
 
+        /// <inheritdoc/>
         public bool AllowReference(Reference reference, XYZ position)
         {
             return false;

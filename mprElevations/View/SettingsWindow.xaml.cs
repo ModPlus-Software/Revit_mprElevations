@@ -1,7 +1,7 @@
 ﻿namespace mprElevations.View
 {
+    using Models;
     using ModPlusAPI.Abstractions;
-    using mprElevations.Models;
 
     /// <summary>
     /// Логика взаимодействия для SettingsWindow.xaml

@@ -8,6 +8,7 @@
     /// </summary>
     public class CategoryModel : VmBase
     {
+        private bool _isChoose;
 
         /// <summary>
         /// Текстовое представление имени категории
@@ -31,7 +32,5 @@
                 OnPropertyChanged();
             }
         }
-
-        private bool _isChoose;
     }
 }

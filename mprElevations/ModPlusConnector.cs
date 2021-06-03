@@ -72,33 +72,21 @@
         public string ToolTipHelpImage => string.Empty;
 
         /// <inheritdoc/>
-        public List<string> SubPluginsNames => new List<string>
-        {
-        };
+        public List<string> SubPluginsNames => new List<string>();
 
         /// <inheritdoc/>
-        public List<string> SubPluginsLNames => new List<string>
-        {
-        };
+        public List<string> SubPluginsLNames => new List<string>();
 
         /// <inheritdoc/>
-        public List<string> SubDescriptions => new List<string>
-        {
-        };
+        public List<string> SubDescriptions => new List<string>();
 
         /// <inheritdoc/>
-        public List<string> SubFullDescriptions => new List<string>
-        {
-        };
+        public List<string> SubFullDescriptions => new List<string>();
 
         /// <inheritdoc/>
-        public List<string> SubHelpImages => new List<string>
-        {
-        };
+        public List<string> SubHelpImages => new List<string>();
 
         /// <inheritdoc/>
-        public List<string> SubClassNames => new List<string>
-        {
-        };
+        public List<string> SubClassNames => new List<string>();
     }
 }

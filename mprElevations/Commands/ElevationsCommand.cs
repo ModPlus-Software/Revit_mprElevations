@@ -7,12 +7,11 @@
     using Autodesk.Revit.DB;
     using Autodesk.Revit.UI;
     using Autodesk.Revit.UI.Selection;
-    using ModPlusAPI;
+    using Models;
     using ModPlusAPI.Windows;
-    using mprElevations.Models;
-    using mprElevations.Services;
-    using mprElevations.Utility;
-    using mprElevations.View;
+    using Services;
+    using Utility;
+    using View;
     using ViewModels;
 
     /// <summary>
@@ -22,33 +21,28 @@
     [Transaction(TransactionMode.Manual)]
     public class ElevationsCommand : IExternalCommand
     {
-        private const string LangItem = "mprElevations";
-
         /// <inheritdoc/>
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
             var doc = commandData.Application.ActiveUIDocument;
             var activeView = doc.ActiveView;
-            var verticalDirection = new XYZ(0, 0, 1);
-            if (!activeView.UpDirection.CrossProduct(verticalDirection).IsAlmostEqualTo(XYZ.Zero))
+            
+            if (activeView.ViewType != ViewType.Section && activeView.ViewType != ViewType.Elevation)
             {
                 MessageBox.Show("Данный вид не является разрезом или фасадом");
                 return Result.Failed;
             }
 
-#if DEBUG
+#if !DEBUG
             ModPlusAPI.Statistic.SendCommandStarting(ModPlusConnector.Instance);
 #endif
-            //// TODO Тут надо получить конфигурацию и сообщить если ее нет. Если есть - выполнить построение отметок
-
             try
             {
                 var elementList = GetElements(doc);
                 var categoryList = GetCategories(elementList);
-                Statistic.SendCommandStarting(ModPlusConnector.Instance);
-
+                
                 var mainContext = new MainContext(categoryList);
-                var settingsWindow = new SettingsWindow()
+                var settingsWindow = new SettingsWindow
                 {
                     DataContext = mainContext
                 };
@@ -64,30 +58,26 @@
                     .Where(i => selectedCategoryIdList.Contains(i.Category.Id))
                     .ToList();
 
-                var service = new ElevationCreationService(doc);
-
-                service.DoWork(selectedElements);
-
+                new ElevationCreationService(doc).DoWork(selectedElements);
+                
+                return Result.Succeeded;
             }
             catch (Autodesk.Revit.Exceptions.OperationCanceledException)
             {
                 return Result.Cancelled;
             }
-            catch (Exception e)
+            catch (Exception exception)
             {
-                ExceptionBox.Show(e);
+                ExceptionBox.Show(exception);
                 return Result.Failed;
             }
-
-            return Result.Succeeded;
         }
 
         /// <summary>
         /// Получить выбранные элементы
         /// </summary>
-        /// <param name="uidoc">Документ</param>
-        /// <returns></returns>
-        private List<Element> GetElements(UIDocument uidoc)
+        /// <param name="uiDoc">Документ</param>
+        private List<Element> GetElements(UIDocument uiDoc)
         {
             var multiClassFilter = new ElementMulticlassFilter(new List<Type>
             {
@@ -96,20 +86,23 @@
                 typeof(Floor)
             });
 
-            var sel = uidoc.Selection
+            var sel = uiDoc.Selection
                 .GetElementIds()
-                .Select(i => uidoc.Document.GetElement(i))
-                .SelectMany(x => (x is Group g) ? g.GetDependentElements(multiClassFilter).Select(e => uidoc.Document.GetElement(e)) : new List<Element> { x })
+                .Select(i => uiDoc.Document.GetElement(i))
+                .SelectMany(x => (x is Group g) 
+                    ? g.GetDependentElements(multiClassFilter).Select(e => uiDoc.Document.GetElement(e))
+                    : new List<Element> { x })
                 .ToList();
 
             while (!sel.Any())
             {
-                sel = uidoc.Selection.PickObjects(ObjectType.Element, new SelectionFilter()).Select(i => uidoc.Document.GetElement(i.ElementId))
+                sel = uiDoc.Selection.PickObjects(ObjectType.Element, new SelectionFilter())
+                    .Select(i => uiDoc.Document.GetElement(i.ElementId))
                     .ToList();
 
                 if (!sel.Any())
                 {
-                    MessageBox.Show("Не выбранно элементов, для продолжения работы необходимо выбрать элементы");
+                    MessageBox.Show("Не выбрано элементов, для продолжения работы необходимо выбрать элементы", MessageBoxIcon.Alert);
                 }
             }
 
@@ -117,10 +110,9 @@
         }
 
         /// <summary>
-        /// Получиь категории из элементов
+        /// Получить категории из элементов
         /// </summary>
         /// <param name="elementsList">Список элементов</param>
-        /// <returns></returns>
         private List<CategoryModel> GetCategories(List<Element> elementsList)
         {
             var categoryModelList = new List<CategoryModel>();
@@ -128,18 +120,15 @@
 
             foreach (var el in elementsList)
             {
-                if (el.Category != null)
+                if (el.Category != null && !categoryLIst.Contains(el.Category.Name))
                 {
-                    if (!categoryLIst.Contains(el.Category.Name))
+                    categoryLIst.Add(el.Category.Name);
+                    categoryModelList.Add(new CategoryModel
                     {
-                        categoryLIst.Add(el.Category.Name);
-                        categoryModelList.Add(new CategoryModel()
-                        {
-                            Name = el.Category.Name,
-                            ElementCategory = el.Category,
-                            IsChoose = false
-                        });
-                    }
+                        Name = el.Category.Name,
+                        ElementCategory = el.Category,
+                        IsChoose = false
+                    });
                 }
             }
 

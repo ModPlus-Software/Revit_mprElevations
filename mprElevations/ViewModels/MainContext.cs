@@ -1,8 +1,8 @@
 ﻿namespace mprElevations.ViewModels
 {
     using System.Collections.Generic;
+    using Models;
     using ModPlusAPI.Mvvm;
-    using mprElevations.Models;
 
     /// <summary>
     /// Контекст окна настроек (конфигураций)
@@ -12,16 +12,15 @@
         /// <summary>
         /// Конструктор класса
         /// </summary>
-        /// <param name="categoryModelslist">Лист с категориями</param>
-        public MainContext(List<CategoryModel> categoryModelslist)
+        /// <param name="categoryModels">Лист с категориями</param>
+        public MainContext(List<CategoryModel> categoryModels)
         {
-            CategoryModelList = categoryModelslist;
+            CategoryModelList = categoryModels;
         }
 
         /// <summary>
         /// Лист с модельками
         /// </summary>
         public List<CategoryModel> CategoryModelList { get; }
-
     }
 }
