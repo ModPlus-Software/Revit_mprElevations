@@ -11,6 +11,7 @@
     using ModPlusAPI.Windows;
     using mprElevations.Models;
     using mprElevations.Services;
+    using mprElevations.Utility;
     using mprElevations.View;
     using ViewModels;
 
@@ -88,19 +89,23 @@
         /// <returns></returns>
         private List<Element> GetElements(UIDocument uidoc)
         {
-            // Проверяем есть ли выбранные элементы
+            var multiClassFilter = new ElementMulticlassFilter(new List<Type>
+            {
+                typeof(FamilyInstance),
+                typeof(Wall),
+                typeof(Floor)
+            });
+
             var sel = uidoc.Selection
                 .GetElementIds()
                 .Select(i => uidoc.Document.GetElement(i))
+                .SelectMany(x => (x is Group g) ? g.GetDependentElements(multiClassFilter).Select(e => uidoc.Document.GetElement(e)) : new List<Element> { x })
                 .ToList();
 
             while (!sel.Any())
             {
-                sel = uidoc
-                        .Selection
-                        .PickObjects(ObjectType.Element, "Выберите элементы")
-                        .Select(i => uidoc.Document.GetElement(i))
-                        .ToList();
+                sel = uidoc.Selection.PickObjects(ObjectType.Element, new SelectionFilter()).Select(i => uidoc.Document.GetElement(i.ElementId))
+                    .ToList();
 
                 if (!sel.Any())
                 {
@@ -123,15 +128,18 @@
 
             foreach (var el in elementsList)
             {
-                if (!categoryLIst.Contains(el.Category.Name))
+                if (el.Category != null)
                 {
-                    categoryLIst.Add(el.Category.Name);
-                    categoryModelList.Add(new CategoryModel()
+                    if (!categoryLIst.Contains(el.Category.Name))
                     {
-                        Name = el.Category.Name,
-                        ElementCategory = el.Category,
-                        IsChoose = false
-                    });
+                        categoryLIst.Add(el.Category.Name);
+                        categoryModelList.Add(new CategoryModel()
+                        {
+                            Name = el.Category.Name,
+                            ElementCategory = el.Category,
+                            IsChoose = false
+                        });
+                    }
                 }
             }
 

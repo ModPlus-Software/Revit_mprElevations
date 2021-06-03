@@ -101,7 +101,14 @@
                     {
                         foreach (var edge in GetGeneratedHostHorizontalLines(el))
                         {
-                            if (!IsParallelTo(((Line)edge.AsCurve()).Direction, _upDirection))
+                            if (!(edge.AsCurve() is Arc))
+                            {
+                                if (!IsParallelTo(((Line)edge.AsCurve()).Direction, _upDirection))
+                                {
+                                    resultDict.Add(edge.AsCurve(), edge.Reference);
+                                }
+                            }
+                            else if (edge.AsCurve() is Arc)
                             {
                                 resultDict.Add(edge.AsCurve(), edge.Reference);
                             }
@@ -120,7 +127,14 @@
                                 {
                                     foreach (Edge edge in solid.Edges)
                                     {
-                                        if (edge.Reference != null && !IsParallelTo(((Line)edge.AsCurve()).Direction, _upDirection))
+                                        if (!(edge.AsCurve() is Arc))
+                                        {
+                                            if (edge.Reference != null && !IsParallelTo(((Line)edge.AsCurve()).Direction, _upDirection))
+                                            {
+                                                resultDict.Add(edge.AsCurve(), edge.Reference);
+                                            }
+                                        }
+                                        else if (edge.AsCurve() is Arc)
                                         {
                                             resultDict.Add(edge.AsCurve(), edge.Reference);
                                         }
@@ -138,12 +152,42 @@
                             .GetDependentElements(new ElementClassFilter(typeof(FamilyInstance)))
                             .Select(i => _doc.GetElement(i))
                             .ToList();
-
-                    foreach (var edge in GetGeneratedOwnLines(dependentElements))
+                    if (dependentElements.Any())
                     {
-                        if (!IsParallelTo(((Line)edge.AsCurve()).Direction, _upDirection))
+                        foreach (var edge in GetGeneratedOwnLines(dependentElements))
                         {
-                            resultDict.Add(edge.AsCurve(), edge.Reference);
+                            if (!(edge.AsCurve() is Arc))
+                            {
+                                if (!IsParallelTo(((Line)edge.AsCurve()).Direction, _upDirection))
+                                {
+                                    resultDict.Add(edge.AsCurve(), edge.Reference);
+                                }
+                            }
+                            else if (edge.AsCurve() is Arc)
+                            {
+                                resultDict.Add(edge.AsCurve(), edge.Reference);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        var solidList = GetSolids(el);
+                        foreach (Solid solid in solidList)
+                        {
+                            foreach (Edge edge in solid.Edges)
+                            {
+                                if (!(edge.AsCurve() is Arc))
+                                {
+                                    if (!IsParallelTo(((Line)edge.AsCurve()).Direction, _upDirection))
+                                    {
+                                        resultDict.Add(edge.AsCurve(), edge.Reference);
+                                    }
+                                }
+                                else if (edge.AsCurve() is Arc)
+                                {
+                                    resultDict.Add(edge.AsCurve(), edge.Reference);
+                                }
+                            }
                         }
                     }
                 }
