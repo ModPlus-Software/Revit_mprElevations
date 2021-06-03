@@ -17,6 +17,7 @@
     <Optimize>false</Optimize>
     <Prefer32Bit>false</Prefer32Bit>
     <UseWpf>true</UseWpf>
+    <MSBuildWarningsAsMessages>MSB3270</MSBuildWarningsAsMessages>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)' == 'R2017'">
@@ -113,7 +114,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Models\" />
     <Folder Include="Resources\" />
   </ItemGroup>
 

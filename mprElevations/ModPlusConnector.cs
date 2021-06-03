@@ -72,39 +72,21 @@
         public string ToolTipHelpImage => string.Empty;
 
         /// <inheritdoc/>
-        public List<string> SubPluginsNames => new List<string>
-        {
-            "mprElevationsSettings"
-        };
+        public List<string> SubPluginsNames => new List<string>();
 
         /// <inheritdoc/>
-        public List<string> SubPluginsLNames => new List<string>
-        {
-            "Высотные отметки. Настройки"
-        };
+        public List<string> SubPluginsLNames => new List<string>();
 
         /// <inheritdoc/>
-        public List<string> SubDescriptions => new List<string>
-        {
-            "Настройки рабочих конфигураций для высотных отметок"
-        };
+        public List<string> SubDescriptions => new List<string>();
 
         /// <inheritdoc/>
-        public List<string> SubFullDescriptions => new List<string>
-        {
-            string.Empty
-        };
+        public List<string> SubFullDescriptions => new List<string>();
 
         /// <inheritdoc/>
-        public List<string> SubHelpImages => new List<string>
-        {
-            string.Empty
-        };
+        public List<string> SubHelpImages => new List<string>();
 
         /// <inheritdoc/>
-        public List<string> SubClassNames => new List<string>
-        {
-            "mprElevations.Commands.SettingsCommand"
-        };
+        public List<string> SubClassNames => new List<string>();
     }
 }
