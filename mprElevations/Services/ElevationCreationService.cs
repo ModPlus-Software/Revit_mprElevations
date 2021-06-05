@@ -7,6 +7,7 @@
     using Autodesk.Revit.UI;
     using Autodesk.Revit.UI.Selection;
     using ModPlus_Revit.Utils;
+    using ModPlusAPI;
 
     /// <summary>
     /// Класс команды
@@ -36,35 +37,37 @@
         /// <param name="listElements">Лист с элементами элементов</param>
         public void DoWork(List<Element> listElements)
         {
-            // Получаем список всех граней выбранных элементов
-            var curveRefDict = GetEdges(listElements);
+            var curveRefDict = GetEdges(listElements).Where(t => t != default).ToList();
 
-            using (var tr = new Transaction(_doc, "CreateElevations"))
+            var trName = Language.GetFunctionLocalName(ModPlusConnector.Instance);
+            if (string.IsNullOrEmpty(trName))
+                trName = "CreateElevations";
+            
+            using (var tr = new Transaction(_doc, trName))
             {
                 tr.Start();
 
-                // Создаем рабочую плоскость
-                _activeView.SketchPlane = SketchPlane.Create(_doc, Plane.CreateByNormalAndOrigin(_activeView.ViewDirection, _activeView.Origin));
+                _activeView.SketchPlane = SketchPlane.Create(
+                    _doc, Plane.CreateByNormalAndOrigin(_activeView.ViewDirection, _activeView.Origin));
 
-                // Получаем точку по которой создадутся уровни
+                // Выберите точку конца
                 var endPoint = _uiDoc.Selection.PickPoint(
                     ObjectSnapTypes.WorkPlaneGrid | ObjectSnapTypes.Centers | ObjectSnapTypes.Endpoints |
                     ObjectSnapTypes.Midpoints | ObjectSnapTypes.Points | ObjectSnapTypes.Perpendicular,
-                    "Выберите точку конца");
+                    Language.GetItem("h3"));
 
                 var zList = new List<double>();
-
-                // Проходимся по списку всех граней и пытаемся создать уровень
-                foreach (var pair in curveRefDict)
+                
+                foreach (var (curve, reference) in curveRefDict)
                 {
-                    if (!zList.Contains(Math.Round(pair.Key.GetEndPoint(0).Z, 4)))
+                    if (!zList.Contains(Math.Round(curve.GetEndPoint(0).Z, 4)))
                     {
-                        zList.Add(Math.Round(pair.Key.GetEndPoint(0).Z, 4));
-                        var startPoint = pair.Key.GetEndPoint(1);
-                        var bendPoint = pair.Key.GetEndPoint(1);
+                        zList.Add(Math.Round(curve.GetEndPoint(0).Z, 4));
+                        var startPoint = curve.GetEndPoint(1);
+                        var bendPoint = curve.GetEndPoint(1);
                         _doc.Create.NewSpotElevation(
                             _doc.ActiveView,
-                            pair.Value,
+                            reference,
                             startPoint,
                             bendPoint,
                             endPoint,
@@ -81,12 +84,11 @@
         /// Получаем словарь состоящий из кривой и референса
         /// </summary>
         /// <param name="elementsList">Список элементов</param>
-        /// <remarks>Метод работает по трем вариантам, на инстансы без host (колонны, фундаменты), на иснтансы с host (двери, окна)
-        /// и на все остальные семейства (типо системных) у всех свой путь получения геометрии</remarks>
-        /// <returns></returns>
-        private Dictionary<Curve, Reference> GetEdges(List<Element> elementsList)
+        /// <remarks>Метод работает по трем вариантам, на экземпляры без host (колонны, фундаменты), на экземпляры
+        /// с host (двери, окна) и на все остальные семейства (типа системных) у всех свой путь получения геометрии
+        /// </remarks>
+        private IEnumerable<(Curve, Reference)> GetEdges(List<Element> elementsList)
         {
-            var resultDict = new Dictionary<Curve, Reference>();
             var option = new Options
             {
                 ComputeReferences = true
@@ -96,51 +98,20 @@
             {
                 if (el is FamilyInstance familyInstance)
                 {
-                    // Если у элемента есть хост объект
                     if (familyInstance.Host != null)
                     {
                         foreach (var edge in GetGeneratedHostHorizontalLines(familyInstance))
-                        {
-                            if (edge.AsCurve() is Line line)
-                            {
-                                if (!line.Direction.IsParallelTo(_upDirection))
-                                {
-                                    resultDict.Add(line, edge.Reference);
-                                }
-                            }
-                            else if (edge.AsCurve() is Arc arc)
-                            {
-                                resultDict.Add(arc, edge.Reference);
-                            }
-                        }
+                            yield return ProcessEdge(edge);
                     }
-
-                    // Если у элемента нет хост объект
                     else
                     {
                         var geometry = familyInstance.get_Geometry(option).GetTransformed(Transform.Identity);
                         foreach (var geometryElement in geometry)
                         {
-                            if (geometryElement is Solid solid)
+                            if (geometryElement is Solid solid && solid.Volume != 0)
                             {
-                                if (solid.Volume != 0)
-                                {
-                                    foreach (Edge edge in solid.Edges)
-                                    {
-                                        if (edge.AsCurve() is Line line)
-                                        {
-                                            if (edge.Reference != null && 
-                                                !line.Direction.IsParallelTo(_upDirection))
-                                            {
-                                                resultDict.Add(line, edge.Reference);
-                                            }
-                                        }
-                                        else if (edge.AsCurve() is Arc arc)
-                                        {
-                                            resultDict.Add(arc, edge.Reference);
-                                        }
-                                    }
-                                }
+                                foreach (Edge edge in solid.Edges)
+                                    yield return ProcessEdge(edge);
                             }
                         }
                     }
@@ -154,19 +125,7 @@
                     if (dependentElements.Any())
                     {
                         foreach (var edge in GetGeneratedOwnLines(dependentElements))
-                        {
-                            if (edge.AsCurve() is Line line)
-                            {
-                                if (!line.Direction.IsParallelTo(_upDirection))
-                                {
-                                    resultDict.Add(line, edge.Reference);
-                                }
-                            }
-                            else if (edge.AsCurve() is Arc arc)
-                            {
-                                resultDict.Add(arc, edge.Reference);
-                            }
-                        }
+                            yield return ProcessEdge(edge);
                     }
                     else
                     {
@@ -174,25 +133,22 @@
                         foreach (var solid in solidList)
                         {
                             foreach (Edge edge in solid.Edges)
-                            {
-                                if (edge.AsCurve() is Line line)
-                                {
-                                    if (!line.Direction.IsParallelTo(_upDirection))
-                                    {
-                                        resultDict.Add(line, edge.Reference);
-                                    }
-                                }
-                                else if (edge.AsCurve() is Arc arc)
-                                {
-                                    resultDict.Add(arc, edge.Reference);
-                                }
-                            }
+                                yield return ProcessEdge(edge);
                         }
                     }
                 }
             }
+        }
 
-            return resultDict;
+        private (Curve, Reference) ProcessEdge(Edge edge)
+        {
+            if (edge.AsCurve() is Line line && !line.Direction.IsParallelTo(_upDirection)) 
+                return (line, edge.Reference);
+
+            if (edge.AsCurve() is Arc arc)
+                return (arc, edge.Reference);
+
+            return default;
         }
         
         /// <summary>
@@ -200,23 +156,18 @@
         /// элемента основы
         /// </summary>
         /// <param name="element">Элемент</param>
-        /// <returns></returns>
         private IEnumerable<Edge> GetGeneratedHostHorizontalLines(Element element)
         {
             var hostElement = GetHostElement(element);
 
             if (hostElement == null)
-            {
                 yield break;
-            }
 
             foreach (var edge in GetSolids(hostElement).SelectMany(solid => solid.Edges.Cast<Edge>().ToList()))
             {
                 if (hostElement.GetGeneratingElementIds(edge).Select(i => i.IntegerValue).Contains(element.Id.IntegerValue)
                     && edge.Reference != null)
-                {
                     yield return edge;
-                }
             }
         }
 
@@ -224,30 +175,23 @@
         /// Получить все грани хост элемента, которые не образованные зависимыми элементам
         /// </summary>
         /// <param name="elementList">Список зависимых элементов</param>
-        private List<Edge> GetGeneratedOwnLines(List<Element> elementList)
+        private IEnumerable<Edge> GetGeneratedOwnLines(List<Element> elementList)
         {
-            var result = new List<Edge>();
             var elementListIds = elementList.Select(element => element.Id.IntegerValue).ToList();
             foreach (var element in elementList)
             {
                 var hostElement = GetHostElement(element);
 
                 if (hostElement == null)
-                {
                     continue;
-                }
 
                 foreach (var edge in GetSolids(hostElement).SelectMany(solid => solid.Edges.Cast<Edge>().ToList()))
                 {
                     if (!IsContainsInLIst(elementListIds, hostElement, edge)
                         && edge.Reference != null)
-                    {
-                        result.Add(edge);
-                    }
+                        yield return edge;
                 }
             }
-
-            return result;
         }
 
         /// <summary>
@@ -256,7 +200,6 @@
         /// <param name="listElementId">Список элементов с айдишниками</param>
         /// <param name="hostElement">Хост элемент</param>
         /// <param name="edge">Грань</param>
-        /// <returns></returns>
         private bool IsContainsInLIst(List<int> listElementId, Element hostElement, Edge edge)
         {
             foreach (var el in listElementId)
@@ -272,34 +215,26 @@
         /// Получение солида
         /// </summary>
         /// <param name="hostElement">Родительский элемент</param>
-        /// <returns></returns>
-        private List<Solid> GetSolids(Element hostElement)
+        private IEnumerable<Solid> GetSolids(Element hostElement)
         {
-            var resultList = new List<Solid>();
             if (!(hostElement is FamilyInstance))
             {
                 var options = new Options
                 {
                     ComputeReferences = true
                 };
+                
                 var geom = hostElement.get_Geometry(options);
                 foreach (var geometryElement in geom)
                 {
-                    if (geometryElement is Solid solid)
-                    {
-                        if (solid.Volume != 0)
-                        {
-                            resultList.Add(solid);
-                        }
-                    }
+                    if (geometryElement is Solid solid && solid.Volume > 0)
+                        yield return solid;
                 }
             }
-
-            return resultList;
         }
 
         /// <summary>
-        /// Возвращает элемент основу для текущего элемента, если текущий элемент является экземпляром семества
+        /// Возвращает элемент основу для текущего элемента, если текущий элемент является экземпляром семейства
         /// </summary>
         /// <param name="element">Элемент</param>
         private Element GetHostElement(Element element)

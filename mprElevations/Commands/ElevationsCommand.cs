@@ -8,6 +8,7 @@
     using Autodesk.Revit.UI;
     using Autodesk.Revit.UI.Selection;
     using Models;
+    using ModPlusAPI;
     using ModPlusAPI.Windows;
     using Services;
     using Utility;
@@ -24,12 +25,13 @@
         /// <inheritdoc/>
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
-            var doc = commandData.Application.ActiveUIDocument;
-            var activeView = doc.ActiveView;
+            var uiDoc = commandData.Application.ActiveUIDocument;
+            var activeView = uiDoc.ActiveGraphicalView;
             
             if (activeView.ViewType != ViewType.Section && activeView.ViewType != ViewType.Elevation)
             {
-                MessageBox.Show("Данный вид не является разрезом или фасадом");
+                // Текущий вид не является разрезом или фасадом
+                MessageBox.Show(Language.GetItem("h1"), MessageBoxIcon.Close);
                 return Result.Failed;
             }
 
@@ -38,7 +40,7 @@
 #endif
             try
             {
-                var elementList = GetElements(doc);
+                var elementList = GetElements(uiDoc);
                 var categoryList = GetCategories(elementList);
                 
                 var mainContext = new MainContext(categoryList);
@@ -58,7 +60,7 @@
                     .Where(i => selectedCategoryIdList.Contains(i.Category.Id))
                     .ToList();
 
-                new ElevationCreationService(doc).DoWork(selectedElements);
+                new ElevationCreationService(uiDoc).DoWork(selectedElements);
                 
                 return Result.Succeeded;
             }
@@ -92,17 +94,17 @@
                 .SelectMany(x => (x is Group g) 
                     ? g.GetDependentElements(multiClassFilter).Select(e => uiDoc.Document.GetElement(e))
                     : new List<Element> { x })
+                .Where(e => e.Category != null)
                 .ToList();
 
             while (!sel.Any())
             {
-                sel = uiDoc.Selection.PickObjects(ObjectType.Element, new SelectionFilter())
-                    .Select(i => uiDoc.Document.GetElement(i.ElementId))
-                    .ToList();
+                sel = uiDoc.Selection.PickElementsByRectangle(new SelectionFilter()).ToList();
 
                 if (!sel.Any())
                 {
-                    MessageBox.Show("Не выбрано элементов, для продолжения работы необходимо выбрать элементы", MessageBoxIcon.Alert);
+                    // Не выбрано элементов. Для продолжения работы необходимо выбрать элементы
+                    MessageBox.Show(Language.GetItem("h2"), MessageBoxIcon.Alert);
                 }
             }
 
@@ -115,24 +117,14 @@
         /// <param name="elementsList">Список элементов</param>
         private List<CategoryModel> GetCategories(List<Element> elementsList)
         {
-            var categoryModelList = new List<CategoryModel>();
-            var categoryLIst = new List<string>();
+            var categoryModelList = new HashSet<CategoryModel>();
 
-            foreach (var el in elementsList)
+            foreach (var el in elementsList.Select(e => new CategoryModel(e.Category)))
             {
-                if (el.Category != null && !categoryLIst.Contains(el.Category.Name))
-                {
-                    categoryLIst.Add(el.Category.Name);
-                    categoryModelList.Add(new CategoryModel
-                    {
-                        Name = el.Category.Name,
-                        ElementCategory = el.Category,
-                        IsChoose = false
-                    });
-                }
+                categoryModelList.Add(el);
             }
 
-            return categoryModelList;
+            return categoryModelList.ToList();
         }
     }
 }

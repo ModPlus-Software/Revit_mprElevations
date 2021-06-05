@@ -3,12 +3,15 @@
                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
                    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-                   xmlns:local="clr-namespace:mprElevations.View"
-                   xmlns:vm="clr-namespace:mprElevations.ViewModels"
+                   xmlns:viewModels="clr-namespace:mprElevations.ViewModels"
                    xmlns:mps="https://modplus.org/winfx/xaml/controls"
-                   SizeToContent="Height" Name="Window"
-                   d:DataContext="{d:DesignInstance vm:MainContext}" mc:Ignorable="d"
-                   Title="SettingsWindow" Width="450">
+                   xmlns:models="clr-namespace:mprElevations.Models"
+                   xmlns:b="http://schemas.microsoft.com/xaml/behaviors"
+                   mc:Ignorable="d"
+                   SizeToContent="WidthAndHeight"
+                   WindowStartupLocation="CenterScreen"
+                   ResizeMode="NoResize"
+                   d:DataContext="{d:DesignInstance viewModels:MainContext}" >
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -17,89 +20,90 @@
             <XmlDataProvider x:Key="Lang" Source="E:/ModPlus/Languages/en-US.xml" XPath="ModPlus/mprElevations"/>
         </ResourceDictionary>
     </Window.Resources>
-    
+
+    <b:Interaction.Triggers>
+        <b:EventTrigger EventName="Closing">
+            <b:InvokeCommandAction Command="{Binding Path=OnClosingCommand}"/>
+        </b:EventTrigger>
+    </b:Interaction.Triggers>
+
     <Grid>
-        
+
         <Grid.RowDefinitions>
-            <RowDefinition Height="50"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
-            <RowDefinition Height="50"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
-        
+
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="100"/>
-            <ColumnDefinition Width="250"/>
-            <ColumnDefinition Width="100"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="Auto"/>
         </Grid.ColumnDefinitions>
 
-        <TextBlock 
-                Grid.Row="0"
+        <!-- Выберите категории для обработки: -->
+        <TextBlock Grid.Row="0"
+                   Grid.Column="0"
+                   Grid.ColumnSpan="2"
+                   Text="{Binding Source={StaticResource Lang}, XPath=h4}"
+                   Margin="{StaticResource ModPlusDefaultMargin}"/>
+
+        <!-- categories -->
+        <ListBox Grid.Row="1"
+                 Grid.Column="0"
+                 ItemsSource="{Binding Path=CategoryModelList}"
+                 Width="300"
+                 MaxHeight="300">
+            <ListBox.ItemTemplate>
+                <DataTemplate DataType="{x:Type models:CategoryModel}">
+                    <CheckBox IsChecked="{Binding Path=IsChoose}"
+                              Content="{Binding Path=Name}"/>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+
+        <!-- select/unselect -->
+        <StackPanel Grid.Row="1"
+                    Grid.Column="1"
+                    Orientation="Vertical">
+
+            <Button Style="{StaticResource ModPlusFlatButtonForIcon}"
+                    Command="{Binding Path=SelectAllCommand}">
+                <Viewbox Width="24" Height="24">
+                    <Canvas Width="24" Height="24">
+                        <Path Fill="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=Button}, Path=Foreground}" 
+                              Data="M14,2A8,8 0 0,0 6,10A8,8 0 0,0 14,18A8,8 0 0,0 22,10H20C20,13.32 17.32,16 14,16A6,6 0 0,1 8,10A6,6 0 0,1 14,4C14.43,4 14.86,4.05 15.27,4.14L16.88,2.54C15.96,2.18 15,2 14,2M20.59,3.58L14,10.17L11.62,7.79L10.21,9.21L14,13L22,5M4.93,5.82C3.08,7.34 2,9.61 2,12A8,8 0 0,0 10,20C10.64,20 11.27,19.92 11.88,19.77C10.12,19.38 8.5,18.5 7.17,17.29C5.22,16.25 4,14.21 4,12C4,11.7 4.03,11.41 4.07,11.11C4.03,10.74 4,10.37 4,10C4,8.56 4.32,7.13 4.93,5.82Z" />
+                    </Canvas>
+                </Viewbox>
+            </Button>
+
+            <Button Style="{StaticResource ModPlusFlatButtonForIcon}"
+                    Command="{Binding Path=UnselectAllCommand}">
+                <Viewbox Width="24" Height="24">
+                    <Canvas Width="24" Height="24">
+                        <Path Fill="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=Button}, Path=Foreground}" 
+                              Data="M14,2A8,8 0 0,0 6,10A8,8 0 0,0 14,18A8,8 0 0,0 22,10A8,8 0 0,0 14,2M14,4C17.32,4 20,6.69 20,10C20,13.32 17.32,16 14,16A6,6 0 0,1 8,10A6,6 0 0,1 14,4M4.93,5.82C3.08,7.34 2,9.61 2,12A8,8 0 0,0 10,20C10.64,20 11.27,19.92 11.88,19.77C10.12,19.38 8.5,18.5 7.17,17.29C5.22,16.25 4,14.21 4,12C4,11.7 4.03,11.41 4.07,11.11C4.03,10.74 4,10.37 4,10C4,8.56 4.32,7.13 4.93,5.82Z" />
+                    </Canvas>
+                </Viewbox>
+            </Button>
+        </StackPanel>
+
+        <!-- Continue -->
+        <Button Grid.Row="2"
                 Grid.Column="0"
-                HorizontalAlignment="Center"
-                VerticalAlignment="Center"
-                FontSize="14"
-                FontWeight="Bold"
-                Text="Выбор"
-                TextWrapping="Wrap"/>
+                HorizontalAlignment="Left"
+                Content="{Binding Source={StaticResource Lang}, XPath=h7}"
+                IsEnabled="{Binding Path=IsEnabledContinue}"
+                IsDefault="True"
+                Click="Button_Apply_Click"/>
 
-        <TextBlock 
-                Grid.Row="0"
-                Grid.Column="1"
-                HorizontalAlignment="Center"
-                VerticalAlignment="Center"
-                FontSize="14"
-                FontWeight="Bold"
-                Text="Имя категории"/>
-
-        <Border
-            BorderBrush="Black"
-            BorderThickness="2"
-            Margin="5"
-            CornerRadius="5"
-            Grid.Row="1"
-            Grid.ColumnSpan="3">
-            <ListBox 
-                Name="list"
-                ItemsSource="{Binding CategoryModelList}"
-                SelectionMode="Extended">
-                <ListBox.ItemTemplate>
-                    <DataTemplate>
-                        <StackPanel Orientation="Horizontal">
-                            <CheckBox IsChecked="{Binding IsChoose}"/>
-
-                            <TextBlock 
-                                    Text="{Binding Name}" 
-                                    Grid.Column="1"
-                                    VerticalAlignment="Center"
-                                    TextWrapping="Wrap"
-                                    Width="330"/>
-                        </StackPanel>
-                    </DataTemplate>
-                </ListBox.ItemTemplate>
-            </ListBox>
-        </Border>
-
-        <Button 
-            Grid.Row="3"
-            Grid.Column="2"
-            Content="Отмена" 
-            Command="{Binding CancelCommand}" 
-            CommandParameter="{Binding ElementName=Window}" Click="Button_Cancel_Click"/>
-
-        <Button 
-            Grid.Row="3"
-            Grid.Column="0"
-            Content="Принять"  
-            Command="{Binding ApplyCommand}" 
-            CommandParameter="{Binding ElementName=Window}" Click="Button_Apply_Click"/>
-
-        <CheckBox 
-            HorizontalAlignment="Center"
-            Grid.Row="3"
-            Grid.Column="1"
-            Content="Выбрать все"
-            Command="{Binding SelectAll}"
-            CommandParameter="{Binding ElementName=Window}" Checked="CheckBox_Checked"/>
+        <!-- Cancel -->
+        <Button Grid.Row="2"
+                Grid.Column="0"
+                Grid.ColumnSpan="2"
+                HorizontalAlignment="Right"
+                Content="{Binding Source={StaticResource Lang}, XPath=h8}"
+                IsCancel="True"
+                Click="Button_Cancel_Click"/>
 
     </Grid>
 </mps:ModPlusWindow>

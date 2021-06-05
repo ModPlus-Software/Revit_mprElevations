@@ -11,9 +11,7 @@
         /// <inheritdoc/>
         public bool AllowElement(Element elem)
         {
-            if (elem is FamilyInstance)
-                return true;
-            if (elem is Group)
+            if (elem is Group || elem.get_Geometry(new Options()) == null)
                 return false;
             return true;
         }
