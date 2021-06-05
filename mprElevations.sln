@@ -3,18 +3,39 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.31205.134
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "mprElevations", "mprElevations\mprElevations.csproj", "{4F079310-9CC8-444C-A0AF-226585CBC4BB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "mprElevations", "mprElevations\mprElevations.csproj", "{4F079310-9CC8-444C-A0AF-226585CBC4BB}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "_build", "build\_build.csproj", "{C2EB5363-C267-4817-891E-9B1168E38685}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		Debug|Any CPU = Debug|Any CPU
-		Release|Any CPU = Release|Any CPU
+		Debug|x64 = Debug|x64
+		R2019|x64 = R2019|x64
+		R2020|x64 = R2020|x64
+		R2021|x64 = R2021|x64
+		R2022|x64 = R2022|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{4F079310-9CC8-444C-A0AF-226585CBC4BB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{4F079310-9CC8-444C-A0AF-226585CBC4BB}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{4F079310-9CC8-444C-A0AF-226585CBC4BB}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{4F079310-9CC8-444C-A0AF-226585CBC4BB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4F079310-9CC8-444C-A0AF-226585CBC4BB}.Debug|x64.ActiveCfg = Debug|x64
+		{4F079310-9CC8-444C-A0AF-226585CBC4BB}.Debug|x64.Build.0 = Debug|x64
+		{4F079310-9CC8-444C-A0AF-226585CBC4BB}.R2019|x64.ActiveCfg = Debug|x64
+		{4F079310-9CC8-444C-A0AF-226585CBC4BB}.R2019|x64.Build.0 = Debug|x64
+		{4F079310-9CC8-444C-A0AF-226585CBC4BB}.R2020|x64.ActiveCfg = Debug|x64
+		{4F079310-9CC8-444C-A0AF-226585CBC4BB}.R2020|x64.Build.0 = Debug|x64
+		{4F079310-9CC8-444C-A0AF-226585CBC4BB}.R2021|x64.ActiveCfg = Debug|x64
+		{4F079310-9CC8-444C-A0AF-226585CBC4BB}.R2021|x64.Build.0 = Debug|x64
+		{4F079310-9CC8-444C-A0AF-226585CBC4BB}.R2022|x64.ActiveCfg = Debug|x64
+		{4F079310-9CC8-444C-A0AF-226585CBC4BB}.R2022|x64.Build.0 = Debug|x64
+		{C2EB5363-C267-4817-891E-9B1168E38685}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{C2EB5363-C267-4817-891E-9B1168E38685}.Debug|x64.Build.0 = Debug|Any CPU
+		{C2EB5363-C267-4817-891E-9B1168E38685}.R2019|x64.ActiveCfg = Release|Any CPU
+		{C2EB5363-C267-4817-891E-9B1168E38685}.R2019|x64.Build.0 = Release|Any CPU
+		{C2EB5363-C267-4817-891E-9B1168E38685}.R2020|x64.ActiveCfg = Release|Any CPU
+		{C2EB5363-C267-4817-891E-9B1168E38685}.R2020|x64.Build.0 = Release|Any CPU
+		{C2EB5363-C267-4817-891E-9B1168E38685}.R2021|x64.ActiveCfg = Release|Any CPU
+		{C2EB5363-C267-4817-891E-9B1168E38685}.R2021|x64.Build.0 = Release|Any CPU
+		{C2EB5363-C267-4817-891E-9B1168E38685}.R2022|x64.ActiveCfg = Release|Any CPU
+		{C2EB5363-C267-4817-891E-9B1168E38685}.R2022|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
