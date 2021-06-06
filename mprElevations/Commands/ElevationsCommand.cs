@@ -6,7 +6,6 @@
     using Autodesk.Revit.Attributes;
     using Autodesk.Revit.DB;
     using Autodesk.Revit.UI;
-    using Autodesk.Revit.UI.Selection;
     using Models;
     using ModPlusAPI;
     using ModPlusAPI.Windows;
@@ -94,7 +93,7 @@
                 .SelectMany(x => (x is Group g) 
                     ? g.GetDependentElements(multiClassFilter).Select(e => uiDoc.Document.GetElement(e))
                     : new List<Element> { x })
-                .Where(e => e.Category != null)
+                .Where(e => e.Category != null && e.get_Geometry(new Options()) != null)
                 .ToList();
 
             while (!sel.Any())
