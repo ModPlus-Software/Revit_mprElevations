@@ -42,7 +42,7 @@
             var trName = Language.GetFunctionLocalName(ModPlusConnector.Instance);
             if (string.IsNullOrEmpty(trName))
                 trName = "CreateElevations";
-            
+
             using (var tr = new Transaction(_doc, trName))
             {
                 tr.Start();
@@ -57,7 +57,7 @@
                     Language.GetItem("h3"));
 
                 var zList = new List<double>();
-                
+
                 foreach (var (curve, reference) in curveRefDict)
                 {
                     if (!zList.Contains(Math.Round(curve.GetEndPoint(0).Z, 4)))
@@ -93,7 +93,7 @@
             {
                 ComputeReferences = true
             };
-            
+
             foreach (var el in elementsList)
             {
                 if (el is FamilyInstance familyInstance)
@@ -142,7 +142,7 @@
 
         private (Curve, Reference) ProcessEdge(Edge edge)
         {
-            if (edge.AsCurve() is Line line && !line.Direction.IsParallelTo(_upDirection)) 
+            if (edge.AsCurve() is Line line && !line.Direction.IsParallelTo(_upDirection))
                 return (line, edge.Reference);
 
             if (edge.AsCurve() is Arc arc)
@@ -150,7 +150,7 @@
 
             return default;
         }
-        
+
         /// <summary>
         /// Возвращает грани элемента-основы, образованные воздействие элемента, полученные из тел геометрии
         /// элемента основы
@@ -223,12 +223,16 @@
                 {
                     ComputeReferences = true
                 };
-                
+
                 var geom = hostElement.get_Geometry(options);
-                foreach (var geometryElement in geom)
+                if (geom != null)
                 {
-                    if (geometryElement is Solid solid && solid.Volume > 0)
-                        yield return solid;
+                    geom = geom.GetTransformed(Transform.Identity);
+                    foreach (var geometryElement in geom)
+                    {
+                        if (geometryElement is Solid solid && solid.Volume > 0)
+                            yield return solid;
+                    }
                 }
             }
         }
