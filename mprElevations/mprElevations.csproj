@@ -1,11 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
 
-   <PropertyGroup>
+  <PropertyGroup>
     <Version>1.0.1.0</Version>
     <RootNamespace>mprElevations</RootNamespace>
     <AssemblyName>$(RootNamespace)</AssemblyName>
   </PropertyGroup>
-  
+
   <PropertyGroup>
     <Company>modplus.org</Company>
     <Authors>modplus.org</Authors>
@@ -20,7 +20,7 @@
     <MSBuildWarningsAsMessages>MSB3270</MSBuildWarningsAsMessages>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)' == 'R2019'">
+  <PropertyGroup Condition="'$(Configuration)' == 'R2019' or '$(Configuration)' == 'Debug'">
     <TargetFramework>net47</TargetFramework>
     <Description>2019</Description>
   </PropertyGroup>
@@ -35,7 +35,7 @@
     <Description>2021</Description>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)' == 'R2022' or '$(Configuration)' == 'Debug'">
+  <PropertyGroup Condition="'$(Configuration)' == 'R2022'">
     <TargetFramework>net48</TargetFramework>
     <Description>2022</Description>
   </PropertyGroup>
@@ -55,7 +55,7 @@
   </PropertyGroup>
 
   <Choose>
-    <When Condition="'$(Configuration)'=='R2019'">
+    <When Condition="'$(Configuration)'=='R2019' or '$(Configuration)'=='Debug'">
       <ItemGroup>
         <PackageReference Include="ModPlus.Revit.API.2019" Version="1.0.0" ExcludeAssets="runtime" />
         <PackageReference Include="ModPlus.Revit.Module.2019" Version="6.5.2" ExcludeAssets="runtime" />
@@ -73,7 +73,7 @@
         <PackageReference Include="ModPlus.Revit.Module.2021" Version="6.5.2" ExcludeAssets="runtime" />
       </ItemGroup>
     </When>
-    <When Condition="'$(Configuration)'=='R2022' or '$(Configuration)'=='Debug'">
+    <When Condition="'$(Configuration)'=='R2022'">
       <ItemGroup>
         <PackageReference Include="ModPlus.Revit.API.2022" Version="1.0.0" ExcludeAssets="runtime" />
         <PackageReference Include="ModPlus.Revit.Module.2022" Version="6.5.2" ExcludeAssets="runtime" />

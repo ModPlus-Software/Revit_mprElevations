@@ -93,19 +93,28 @@
             {
                 ComputeReferences = true
             };
+            var dependetClasses = new List<Type>
+            {
+                typeof(FamilyInstance),
+                typeof(Opening),
+                typeof(Panel)
+            };
 
             foreach (var el in elementsList)
             {
-                if (el is FamilyInstance familyInstance)
+                if (dependetClasses.Any(classType => el.GetType() == classType))
                 {
-                    if (familyInstance.Host != null)
+                    var hostElement = GetHostElement(el);
+                    if (hostElement != null 
+                        && !(hostElement is Level)
+                        && !(el is Panel))
                     {
-                        foreach (var edge in GetGeneratedHostHorizontalLines(familyInstance))
+                        foreach (var edge in GetGeneratedHostHorizontalLines(el))
                             yield return ProcessEdge(edge);
                     }
                     else
                     {
-                        var geometry = familyInstance.get_Geometry(option).GetTransformed(Transform.Identity);
+                        var geometry = el.get_Geometry(option).GetTransformed(Transform.Identity);
                         foreach (var geometryElement in geometry)
                         {
                             if (geometryElement is Solid solid && solid.Volume != 0)
@@ -118,10 +127,15 @@
                 }
                 else
                 {
-                    var dependentElements = el
-                            .GetDependentElements(new ElementClassFilter(typeof(FamilyInstance)))
+                    var dependentElements = new List<Element>();
+                    if (el is Wall || el is Floor)
+                    {
+                        dependentElements = ((HostObject)el)
+                            .FindInserts(true, false, true, true)
                             .Select(i => _doc.GetElement(i))
                             .ToList();
+                    }
+
                     if (dependentElements.Any())
                     {
                         foreach (var edge in GetGeneratedOwnLines(dependentElements))
@@ -136,6 +150,7 @@
                                 yield return ProcessEdge(edge);
                         }
                     }
+
                 }
             }
         }
@@ -243,7 +258,15 @@
         /// <param name="element">Элемент</param>
         private Element GetHostElement(Element element)
         {
-            return element is FamilyInstance familyInstance && familyInstance.Host != null ? familyInstance.Host : null;
+            switch (element)
+            {
+                case Opening opening:
+                    return opening.Host != null ? opening.Host : null;
+                case FamilyInstance familyInstance:
+                    return familyInstance.Host != null ? familyInstance.Host : null;
+                default:
+                    return null;
+            }
         }
     }
 }
