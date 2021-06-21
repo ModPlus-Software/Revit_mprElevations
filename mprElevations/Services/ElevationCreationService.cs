@@ -8,6 +8,7 @@
     using Autodesk.Revit.UI.Selection;
     using ModPlus_Revit.Utils;
     using ModPlusAPI;
+    using Models;
 
     /// <summary>
     /// Класс команды
@@ -35,7 +36,7 @@
         /// Метод исполнения команды 
         /// </summary>
         /// <param name="listElements">Лист с элементами элементов</param>
-        public void DoWork(List<Element> listElements)
+        public void DoWork(List<ElementModel> listElements)
         {
             var curveRefDict = GetEdges(listElements).Where(t => t != default).ToList();
 
@@ -87,45 +88,65 @@
         /// <remarks>Метод работает по трем вариантам, на экземпляры без host (колонны, фундаменты), на экземпляры
         /// с host (двери, окна) и на все остальные семейства (типа системных) у всех свой путь получения геометрии
         /// </remarks>
-        private IEnumerable<(Curve, Reference)> GetEdges(List<Element> elementsList)
+        private IEnumerable<(Curve, Reference)> GetEdges(List<ElementModel> elementsList)
         {
             var option = new Options
             {
                 ComputeReferences = true
             };
 
+            // Список для перебора элементов по классам
+            var dependetClasses = new List<Type>
+            {
+                typeof(FamilyInstance),
+                typeof(Opening),
+                typeof(Panel)
+            };
+
             foreach (var el in elementsList)
             {
-                if (el is FamilyInstance familyInstance)
+                if (dependetClasses.Any(classType => el.Elem.GetType() == classType))
                 {
-                    if (familyInstance.Host != null)
+                    var hostElement = GetHostElement(el.Elem);
+                    if (hostElement != null
+                        && !(hostElement is Level)
+                        && !(el.Elem is Panel))
                     {
-                        foreach (var edge in GetGeneratedHostHorizontalLines(familyInstance))
-                            yield return ProcessEdge(edge);
+                        foreach (var edge in GetGeneratedHostHorizontalLines(el))
+                            yield return ProcessEdge(edge, el);
                     }
                     else
                     {
-                        var geometry = familyInstance.get_Geometry(option).GetTransformed(Transform.Identity);
+                        var geometry = el.Elem.get_Geometry(option).GetTransformed(
+                            el.LinkInstance == null 
+                                ? Transform.Identity
+                                : el.LinkInstance.GetTotalTransform());
+                        
                         foreach (var geometryElement in geometry)
                         {
                             if (geometryElement is Solid solid && solid.Volume != 0)
                             {
                                 foreach (Edge edge in solid.Edges)
-                                    yield return ProcessEdge(edge);
+                                    yield return ProcessEdge(edge, el);
                             }
                         }
                     }
                 }
                 else
                 {
-                    var dependentElements = el
-                            .GetDependentElements(new ElementClassFilter(typeof(FamilyInstance)))
-                            .Select(i => _doc.GetElement(i))
+                    var dependentElements = new List<Element>();
+                    if (el.Elem is Wall || el.Elem is Floor)
+                    {
+                        dependentElements = ((HostObject)el.Elem)
+                            .FindInserts(true, false, true, true)
+                            .Select(i => el.Doc.GetElement(i))
                             .ToList();
+                    }
+
                     if (dependentElements.Any())
                     {
-                        foreach (var edge in GetGeneratedOwnLines(dependentElements))
-                            yield return ProcessEdge(edge);
+                        foreach (var edge in GetGeneratedOwnLines(dependentElements, el))
+                            yield return ProcessEdge(edge, el);
                     }
                     else
                     {
@@ -133,20 +154,44 @@
                         foreach (var solid in solidList)
                         {
                             foreach (Edge edge in solid.Edges)
-                                yield return ProcessEdge(edge);
+                                yield return ProcessEdge(edge, el);
                         }
                     }
                 }
             }
         }
 
-        private (Curve, Reference) ProcessEdge(Edge edge)
+        private (Curve, Reference) ProcessEdge(Edge edge, ElementModel elementModel)
         {
+            Reference reference;
+            if (elementModel.LinkInstance == null)
+            {
+                reference = edge.Reference;
+            }
+            else
+            {
+                reference = edge.Reference;
+                var stableRepresentation = reference.CreateLinkReference(elementModel.LinkInstance).ConvertToStableRepresentation(_doc);
+
+                // Приведение получаемой строки из одного вида в другой
+                // 1a5ab77d-1ae2-4e82-872d-63be5c36dec1-00039e53:RVTLINK/1a5ab77d-1ae2-4e82-872d-63be5c36dec1-00039e52:1224485 ->
+                // 1a5ab77d-1ae2-4e82-872d-63be5c36dec1-00039e53:0:RVTLINK/1a5ab77d-1ae2-4e82-872d-63be5c36dec1-00039e52:1224485
+                // инфа с форума https://adn-cis.org/forum/index.php?topic=2757.0
+                var fitstUnderString = stableRepresentation.Split(':')[0];
+                var resultString = fitstUnderString + ":0";
+                for (int i = 1; i < stableRepresentation.Split(':').Count(); i++)
+                {
+                    resultString += ":" + stableRepresentation.Split(':')[i];
+                }
+
+                reference = Reference.ParseFromStableRepresentation(_doc, resultString);
+            }
+
             if (edge.AsCurve() is Line line && !line.Direction.IsParallelTo(_upDirection))
-                return (line, edge.Reference);
+                return (line, reference);
 
             if (edge.AsCurve() is Arc arc)
-                return (arc, edge.Reference);
+                return (arc, reference);
 
             return default;
         }
@@ -155,17 +200,23 @@
         /// Возвращает грани элемента-основы, образованные воздействие элемента, полученные из тел геометрии
         /// элемента основы
         /// </summary>
-        /// <param name="element">Элемент</param>
-        private IEnumerable<Edge> GetGeneratedHostHorizontalLines(Element element)
+        /// <param name="elementModel">Модель элемента</param>
+        private IEnumerable<Edge> GetGeneratedHostHorizontalLines(ElementModel elementModel)
         {
-            var hostElement = GetHostElement(element);
+            var hostElement = GetHostElement(elementModel.Elem);
 
             if (hostElement == null)
                 yield break;
 
-            foreach (var edge in GetSolids(hostElement).SelectMany(solid => solid.Edges.Cast<Edge>().ToList()))
+            foreach (var edge in GetSolids(new ElementModel(
+                hostElement,
+                elementModel.Doc,
+                elementModel.LinkInstance))
+                .SelectMany(solid => solid.Edges
+                .Cast<Edge>()
+                .ToList()))
             {
-                if (hostElement.GetGeneratingElementIds(edge).Select(i => i.IntegerValue).Contains(element.Id.IntegerValue)
+                if (hostElement.GetGeneratingElementIds(edge).Select(i => i.IntegerValue).Contains(elementModel.Elem.Id.IntegerValue)
                     && edge.Reference != null)
                     yield return edge;
             }
@@ -175,7 +226,8 @@
         /// Получить все грани хост элемента, которые не образованные зависимыми элементам
         /// </summary>
         /// <param name="elementList">Список зависимых элементов</param>
-        private IEnumerable<Edge> GetGeneratedOwnLines(List<Element> elementList)
+        /// <param name="elementModel"><see cref="ElementModel"/></param>
+        private IEnumerable<Edge> GetGeneratedOwnLines(List<Element> elementList, ElementModel elementModel)
         {
             var elementListIds = elementList.Select(element => element.Id.IntegerValue).ToList();
             foreach (var element in elementList)
@@ -185,7 +237,12 @@
                 if (hostElement == null)
                     continue;
 
-                foreach (var edge in GetSolids(hostElement).SelectMany(solid => solid.Edges.Cast<Edge>().ToList()))
+                foreach (var edge in GetSolids(new ElementModel(
+                    hostElement,
+                    elementModel.Doc,
+                    elementModel.LinkInstance))
+                    .SelectMany(solid => solid.Edges.Cast<Edge>()
+                    .ToList()))
                 {
                     if (!IsContainsInLIst(elementListIds, hostElement, edge)
                         && edge.Reference != null)
@@ -212,22 +269,26 @@
         }
 
         /// <summary>
-        /// Получение солида
+        /// Получение солида из модели с элементом
         /// </summary>
-        /// <param name="hostElement">Родительский элемент</param>
-        private IEnumerable<Solid> GetSolids(Element hostElement)
+        /// <param name="elementModel">Экземпляр модельки с элементом</param>
+        private IEnumerable<Solid> GetSolids(ElementModel elementModel)
         {
-            if (!(hostElement is FamilyInstance))
+            if (!(elementModel.Elem is FamilyInstance))
             {
                 var options = new Options
                 {
                     ComputeReferences = true
                 };
 
-                var geom = hostElement.get_Geometry(options);
+                var geom = elementModel.Elem.get_Geometry(options);
                 if (geom != null)
                 {
-                    geom = geom.GetTransformed(Transform.Identity);
+                    geom = geom.GetTransformed(
+                        elementModel.LinkInstance == null
+                            ? Transform.Identity
+                            : elementModel.LinkInstance.GetTotalTransform());
+                    
                     foreach (var geometryElement in geom)
                     {
                         if (geometryElement is Solid solid && solid.Volume > 0)
@@ -243,7 +304,15 @@
         /// <param name="element">Элемент</param>
         private Element GetHostElement(Element element)
         {
-            return element is FamilyInstance familyInstance && familyInstance.Host != null ? familyInstance.Host : null;
+            switch (element)
+            {
+                case Opening opening:
+                    return opening.Host;
+                case FamilyInstance familyInstance:
+                    return familyInstance.Host;
+                default:
+                    return null;
+            }
         }
     }
 }
