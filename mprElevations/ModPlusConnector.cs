@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using ModPlusAPI.Abstractions;
     using ModPlusAPI.Enums;
+    using mprElevations.Commands;
 
     /// <inheritdoc/>
     public class ModPlusConnector : IModPlusPlugin
@@ -42,7 +43,7 @@
 #endif
 
         /// <inheritdoc/>
-        public string FullClassName => "mprElevations.Commands.ElevationsCommand";
+        public string FullClassName => "mprElevations.Commands.ElevationsCurrentDocCommand";
 
         /// <inheritdoc/>
         public string AppFullClassName => string.Empty;
@@ -72,21 +73,39 @@
         public string ToolTipHelpImage => string.Empty;
 
         /// <inheritdoc/>
-        public List<string> SubPluginsNames => new List<string>();
+        public List<string> SubPluginsNames => new List<string>()
+        {
+            $"mprElevations.Commands.{nameof(ElevationsLinkedDocCommand)}"
+        };
 
         /// <inheritdoc/>
-        public List<string> SubPluginsLNames => new List<string>();
+        public List<string> SubPluginsLNames => new List<string>()
+        {
+            "Высотные отметки в связанных файлах"
+        };
 
         /// <inheritdoc/>
-        public List<string> SubDescriptions => new List<string>();
+        public List<string> SubDescriptions => new List<string>()
+        { 
+            "Быстрое проставление высотных отметок в связанных файлах"
+        };
 
         /// <inheritdoc/>
-        public List<string> SubFullDescriptions => new List<string>();
+        public List<string> SubFullDescriptions => new List<string>()
+        {
+            string.Empty
+        };
 
         /// <inheritdoc/>
-        public List<string> SubHelpImages => new List<string>();
+        public List<string> SubHelpImages => new List<string>()
+        {
+            string.Empty
+        };
 
         /// <inheritdoc/>
-        public List<string> SubClassNames => new List<string>();
+        public List<string> SubClassNames => new List<string>()
+        {
+            $"mprElevations.Commands.{nameof(ElevationsLinkedDocCommand)}"
+        };
     }
 }

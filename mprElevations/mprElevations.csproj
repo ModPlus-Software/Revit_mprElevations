@@ -20,7 +20,7 @@
     <MSBuildWarningsAsMessages>MSB3270</MSBuildWarningsAsMessages>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)' == 'R2019' or '$(Configuration)' == 'Debug'">
+  <PropertyGroup Condition="'$(Configuration)' == 'R2019'">
     <TargetFramework>net47</TargetFramework>
     <Description>2019</Description>
   </PropertyGroup>
@@ -35,7 +35,7 @@
     <Description>2021</Description>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)' == 'R2022'">
+  <PropertyGroup Condition="'$(Configuration)' == 'R2022' or '$(Configuration)' == 'Debug'">
     <TargetFramework>net48</TargetFramework>
     <Description>2022</Description>
   </PropertyGroup>
@@ -55,36 +55,36 @@
   </PropertyGroup>
 
   <Choose>
-    <When Condition="'$(Configuration)'=='R2019' or '$(Configuration)'=='Debug'">
+    <When Condition="'$(Configuration)'=='R2019'">
       <ItemGroup>
-        <PackageReference Include="ModPlus.Revit.API.2019" Version="1.0.0" ExcludeAssets="runtime" />
-        <PackageReference Include="ModPlus.Revit.Module.2019" Version="6.5.2" ExcludeAssets="runtime" />
+        <PackageReference Include="ModPlus.Revit.API.2019" Version="2.0.1" ExcludeAssets="runtime" />
+        <PackageReference Include="ModPlus.Revit.Module.2019" Version="7.2.0" ExcludeAssets="runtime" />
       </ItemGroup>
     </When>
     <When Condition="'$(Configuration)'=='R2020'">
       <ItemGroup>
         <PackageReference Include="ModPlus.Revit.API.2020" Version="1.0.0" ExcludeAssets="runtime" />
-        <PackageReference Include="ModPlus.Revit.Module.2020" Version="6.5.2" ExcludeAssets="runtime" />
+        <PackageReference Include="ModPlus.Revit.Module.2020" Version="7.2.0" ExcludeAssets="runtime" />
       </ItemGroup>
     </When>
     <When Condition="'$(Configuration)'=='R2021'">
       <ItemGroup>
         <PackageReference Include="ModPlus.Revit.API.2021" Version="1.0.0" ExcludeAssets="runtime" />
-        <PackageReference Include="ModPlus.Revit.Module.2021" Version="6.5.2" ExcludeAssets="runtime" />
+        <PackageReference Include="ModPlus.Revit.Module.2021" Version="7.2.0" ExcludeAssets="runtime" />
       </ItemGroup>
     </When>
-    <When Condition="'$(Configuration)'=='R2022'">
+    <When Condition="'$(Configuration)'=='R2022' or '$(Configuration)'=='Debug'">
       <ItemGroup>
         <PackageReference Include="ModPlus.Revit.API.2022" Version="1.0.0" ExcludeAssets="runtime" />
-        <PackageReference Include="ModPlus.Revit.Module.2022" Version="6.5.2" ExcludeAssets="runtime" />
+        <PackageReference Include="ModPlus.Revit.Module.2022" Version="7.2.0" ExcludeAssets="runtime" />
       </ItemGroup>
     </When>
   </Choose>
 
   <ItemGroup>
-    <PackageReference Include="JetBrains.Annotations" Version="2020.1.0" ExcludeAssets="runtime" />
-    <PackageReference Include="ModPlusAPI" Version="7.4.0" ExcludeAssets="runtime" />
-    <PackageReference Include="ModPlusStyle" Version="3.8.0" ExcludeAssets="runtime" />
+    <PackageReference Include="JetBrains.Annotations" Version="2021.1.0" ExcludeAssets="runtime" />
+    <PackageReference Include="ModPlusAPI" Version="7.5.0" ExcludeAssets="runtime" />
+    <PackageReference Include="ModPlusStyle" Version="4.0.0" ExcludeAssets="runtime" />
     <PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
