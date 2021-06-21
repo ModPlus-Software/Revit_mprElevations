@@ -5,10 +5,10 @@
     using Autodesk.Revit.Attributes;
     using Autodesk.Revit.DB;
     using Autodesk.Revit.UI;
+    using Autodesk.Revit.UI.Selection;
+    using Models;
     using ModPlusAPI;
     using ModPlusAPI.Windows;
-    using mprElevations.Models;
-    using mprElevations.Utility;
 
     /// <summary>
     /// Команда создания высотных отметок по на связанные файлы
@@ -33,8 +33,8 @@
 
             while (!sel.Any())
             {
-                var selectionFilter = new SelectionFilter();
-                sel = uiDoc.Selection.PickObjects(objectType: Autodesk.Revit.UI.Selection.ObjectType.LinkedElement, "Выберите элементы из связанных файлов")
+                // Выберите элементы из связанных файлов
+                sel = uiDoc.Selection.PickObjects(ObjectType.LinkedElement, Language.GetItem("h10"))
                     .Select(i => new ElementModel(i, uiDoc.Document))
                     .ToList();
 

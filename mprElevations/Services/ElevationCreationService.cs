@@ -8,7 +8,7 @@
     using Autodesk.Revit.UI.Selection;
     using ModPlus_Revit.Utils;
     using ModPlusAPI;
-    using mprElevations.Models;
+    using Models;
 
     /// <summary>
     /// Класс команды
@@ -63,7 +63,6 @@
                 {
                     if (!zList.Contains(Math.Round(curve.GetEndPoint(0).Z, 4)))
                     {
-
                         zList.Add(Math.Round(curve.GetEndPoint(0).Z, 4));
                         var startPoint = curve.GetEndPoint(1);
                         var bendPoint = curve.GetEndPoint(1);
@@ -118,11 +117,11 @@
                     }
                     else
                     {
-                        GeometryElement geometry = null;
-                        if (el.LinkInstance == null)
-                            geometry = el.Elem.get_Geometry(option).GetTransformed(Transform.Identity);
-                        else
-                            geometry = el.Elem.get_Geometry(option).GetTransformed(el.LinkInstance.GetTotalTransform());
+                        var geometry = el.Elem.get_Geometry(option).GetTransformed(
+                            el.LinkInstance == null 
+                                ? Transform.Identity
+                                : el.LinkInstance.GetTotalTransform());
+                        
                         foreach (var geometryElement in geometry)
                         {
                             if (geometryElement is Solid solid && solid.Volume != 0)
@@ -164,7 +163,7 @@
 
         private (Curve, Reference) ProcessEdge(Edge edge, ElementModel elementModel)
         {
-            Reference reference = null;
+            Reference reference;
             if (elementModel.LinkInstance == null)
             {
                 reference = edge.Reference;
@@ -174,10 +173,10 @@
                 reference = edge.Reference;
                 var stableRepresentation = reference.CreateLinkReference(elementModel.LinkInstance).ConvertToStableRepresentation(_doc);
 
-                // Приведение получаеемой строки из одного вида в другой
+                // Приведение получаемой строки из одного вида в другой
                 // 1a5ab77d-1ae2-4e82-872d-63be5c36dec1-00039e53:RVTLINK/1a5ab77d-1ae2-4e82-872d-63be5c36dec1-00039e52:1224485 ->
                 // 1a5ab77d-1ae2-4e82-872d-63be5c36dec1-00039e53:0:RVTLINK/1a5ab77d-1ae2-4e82-872d-63be5c36dec1-00039e52:1224485
-                // инфа с формума https://adn-cis.org/forum/index.php?topic=2757.0
+                // инфа с форума https://adn-cis.org/forum/index.php?topic=2757.0
                 var fitstUnderString = stableRepresentation.Split(':')[0];
                 var resultString = fitstUnderString + ":0";
                 for (int i = 1; i < stableRepresentation.Split(':').Count(); i++)
@@ -227,6 +226,7 @@
         /// Получить все грани хост элемента, которые не образованные зависимыми элементам
         /// </summary>
         /// <param name="elementList">Список зависимых элементов</param>
+        /// <param name="elementModel"><see cref="ElementModel"/></param>
         private IEnumerable<Edge> GetGeneratedOwnLines(List<Element> elementList, ElementModel elementModel)
         {
             var elementListIds = elementList.Select(element => element.Id.IntegerValue).ToList();
@@ -284,10 +284,11 @@
                 var geom = elementModel.Elem.get_Geometry(options);
                 if (geom != null)
                 {
-                    if (elementModel.LinkInstance == null)
-                        geom = geom.GetTransformed(Transform.Identity);
-                    else
-                        geom = geom.GetTransformed(elementModel.LinkInstance.GetTotalTransform());
+                    geom = geom.GetTransformed(
+                        elementModel.LinkInstance == null
+                            ? Transform.Identity
+                            : elementModel.LinkInstance.GetTotalTransform());
+                    
                     foreach (var geometryElement in geom)
                     {
                         if (geometryElement is Solid solid && solid.Volume > 0)
@@ -306,9 +307,9 @@
             switch (element)
             {
                 case Opening opening:
-                    return opening.Host != null ? opening.Host : null;
+                    return opening.Host;
                 case FamilyInstance familyInstance:
-                    return familyInstance.Host != null ? familyInstance.Host : null;
+                    return familyInstance.Host;
                 default:
                     return null;
             }

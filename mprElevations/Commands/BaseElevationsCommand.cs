@@ -18,7 +18,7 @@
     public class BaseElevationsCommand 
     {
         /// <summary>
-        /// Исполнительная комманда
+        /// Исполнительная команда
         /// </summary>
         /// <param name="commandData">commandData</param>
         /// <param name="getElementFunction">Функция получения элементов</param>

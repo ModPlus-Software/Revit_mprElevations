@@ -16,7 +16,7 @@
         {
             if (reference.LinkedElementId != ElementId.InvalidElementId)
             {
-                LinkInstance = document.GetElement(reference.ElementId) as RevitLinkInstance;
+                LinkInstance = (RevitLinkInstance)document.GetElement(reference.ElementId);
                 Doc = LinkInstance.GetLinkDocument();
                 Elem = Doc.GetElement(reference.LinkedElementId);
             }

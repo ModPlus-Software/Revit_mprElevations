@@ -5,6 +5,7 @@
     using Autodesk.Revit.Attributes;
     using Autodesk.Revit.DB;
     using Autodesk.Revit.UI;
+    using Autodesk.Revit.UI.Selection;
     using Models;
     using ModPlusAPI;
     using ModPlusAPI.Windows;
@@ -33,8 +34,8 @@
 
             while (!sel.Any())
             {
-                var selectionFilter = new SelectionFilter();
-                sel = uiDoc.Selection.PickObjects(objectType: Autodesk.Revit.UI.Selection.ObjectType.Element, new SelectionFilter(), "Выберите элементы из текущего файла")
+                // Выберите элементы из текущего файла
+                sel = uiDoc.Selection.PickObjects(ObjectType.Element, new SelectionFilter(), Language.GetItem("h9"))
                     .Where(i => i != null)
                     .Select(i => new ElementModel(i, uiDoc.Document))
                     .ToList();

@@ -2,9 +2,9 @@
 {
     using System;
     using System.Collections.Generic;
+    using Commands;
     using ModPlusAPI.Abstractions;
     using ModPlusAPI.Enums;
-    using mprElevations.Commands;
 
     /// <inheritdoc/>
     public class ModPlusConnector : IModPlusPlugin
@@ -22,13 +22,7 @@
         /// <inheritdoc/>
         public string Name => "mprElevations";
 
-#if R2017
-        /// <inheritdoc/>
-        public string AvailProductExternalVersion => "2017";
-#elif R2018
-        /// <inheritdoc/>
-        public string AvailProductExternalVersion => "2018";
-#elif R2019
+#if R2019
         /// <inheritdoc/>
         public string AvailProductExternalVersion => "2019";
 #elif R2020
@@ -73,37 +67,37 @@
         public string ToolTipHelpImage => string.Empty;
 
         /// <inheritdoc/>
-        public List<string> SubPluginsNames => new List<string>()
+        public List<string> SubPluginsNames => new List<string>
         {
-            $"mprElevations.Commands.{nameof(ElevationsLinkedDocCommand)}"
+            "mprLinkElevations"
         };
 
         /// <inheritdoc/>
-        public List<string> SubPluginsLNames => new List<string>()
+        public List<string> SubPluginsLNames => new List<string>
         {
-            "Высотные отметки в связанных файлах"
+            "Высотные отметки по связанным файлам"
         };
 
         /// <inheritdoc/>
-        public List<string> SubDescriptions => new List<string>()
+        public List<string> SubDescriptions => new List<string>
         { 
-            "Быстрое проставление высотных отметок в связанных файлах"
+            "Быстрое создание высотных отметок на сечениях и фасадах по элементам из связанных файлов"
         };
 
         /// <inheritdoc/>
-        public List<string> SubFullDescriptions => new List<string>()
+        public List<string> SubFullDescriptions => new List<string>
         {
             string.Empty
         };
 
         /// <inheritdoc/>
-        public List<string> SubHelpImages => new List<string>()
+        public List<string> SubHelpImages => new List<string>
         {
             string.Empty
         };
 
         /// <inheritdoc/>
-        public List<string> SubClassNames => new List<string>()
+        public List<string> SubClassNames => new List<string>
         {
             $"mprElevations.Commands.{nameof(ElevationsLinkedDocCommand)}"
         };
