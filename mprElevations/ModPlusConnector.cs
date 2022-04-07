@@ -1,26 +1,25 @@
-﻿namespace mprElevations
+﻿namespace mprElevations;
+
+using System;
+using System.Collections.Generic;
+using ModPlusAPI.Abstractions;
+using ModPlusAPI.Enums;
+
+/// <inheritdoc/>
+public class ModPlusConnector : IModPlusPlugin
 {
-    using System;
-    using System.Collections.Generic;
-    using Commands;
-    using ModPlusAPI.Abstractions;
-    using ModPlusAPI.Enums;
+    private static ModPlusConnector _instance;
+
+    /// <summary>
+    /// Singleton instance
+    /// </summary>
+    public static ModPlusConnector Instance => _instance ??= new ModPlusConnector();
 
     /// <inheritdoc/>
-    public class ModPlusConnector : IModPlusPlugin
-    {
-        private static ModPlusConnector _instance;
+    public SupportedProduct SupportedProduct => SupportedProduct.Revit;
 
-        /// <summary>
-        /// Singleton instance
-        /// </summary>
-        public static ModPlusConnector Instance => _instance ?? (_instance = new ModPlusConnector());
-
-        /// <inheritdoc/>
-        public SupportedProduct SupportedProduct => SupportedProduct.Revit;
-
-        /// <inheritdoc/>
-        public string Name => "mprElevations";
+    /// <inheritdoc/>
+    public string Name => nameof(mprElevations);
 
 #if R2019
         /// <inheritdoc/>
@@ -34,72 +33,44 @@
 #elif R2022
         /// <inheritdoc/>
         public string AvailProductExternalVersion => "2022";
+#elif R2023
+    /// <inheritdoc/>
+    public string AvailProductExternalVersion => "2023";
 #endif
 
-        /// <inheritdoc/>
-        public string FullClassName => "mprElevations.Commands.ElevationsCurrentDocCommand";
+    /// <inheritdoc/>
+    public string FullClassName => $"{nameof(mprElevations)}.{nameof(Commands)}.{nameof(Commands.ElevationsCurrentDocCommand)}";
 
-        /// <inheritdoc/>
-        public string AppFullClassName => string.Empty;
+    /// <inheritdoc/>
+    public string AppFullClassName => string.Empty;
 
-        /// <inheritdoc/>
-        public Guid AddInId => Guid.Empty;
+    /// <inheritdoc/>
+    public Guid AddInId => Guid.Empty;
 
-        /// <inheritdoc/>
-        public string LName => "Высотные отметки";
+    /// <inheritdoc/>
+    public string Price => "0";
 
-        /// <inheritdoc/>
-        public string Description => "Быстрое создание высотных отметок на сечениях и фасадах";
+    /// <inheritdoc/>
+    public bool CanAddToRibbon => true;
 
-        /// <inheritdoc/>
-        public string Author => "Алексей Никитенко";
+    /// <inheritdoc/>
+    public string ToolTipHelpImage => string.Empty;
 
-        /// <inheritdoc/>
-        public string Price => "0";
+    /// <inheritdoc/>
+    public List<string> SubPluginsNames => new ()
+    {
+        "mprLinkElevations"
+    };
 
-        /// <inheritdoc/>
-        public bool CanAddToRibbon => true;
+    /// <inheritdoc/>
+    public List<string> SubHelpImages => new ()
+    {
+        string.Empty
+    };
 
-        /// <inheritdoc/>
-        public string FullDescription => string.Empty;
-
-        /// <inheritdoc/>
-        public string ToolTipHelpImage => string.Empty;
-
-        /// <inheritdoc/>
-        public List<string> SubPluginsNames => new List<string>
-        {
-            "mprLinkElevations"
-        };
-
-        /// <inheritdoc/>
-        public List<string> SubPluginsLNames => new List<string>
-        {
-            "Высотные отметки по связанным файлам"
-        };
-
-        /// <inheritdoc/>
-        public List<string> SubDescriptions => new List<string>
-        { 
-            "Быстрое создание высотных отметок на сечениях и фасадах по элементам из связанных файлов"
-        };
-
-        /// <inheritdoc/>
-        public List<string> SubFullDescriptions => new List<string>
-        {
-            string.Empty
-        };
-
-        /// <inheritdoc/>
-        public List<string> SubHelpImages => new List<string>
-        {
-            string.Empty
-        };
-
-        /// <inheritdoc/>
-        public List<string> SubClassNames => new List<string>
-        {
-            $"mprElevations.Commands.{nameof(ElevationsLinkedDocCommand)}"
-        };
-    }
+    /// <inheritdoc/>
+    public List<string> SubClassNames => new ()
+    {
+        $"{nameof(mprElevations)}.{nameof(Commands)}.{nameof(Commands.ElevationsLinkedDocCommand)}"
+    };
 }

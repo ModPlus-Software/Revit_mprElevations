@@ -1,63 +1,62 @@
-﻿namespace mprElevations.Models
+﻿namespace mprElevations.Models;
+
+using System;
+using Autodesk.Revit.DB;
+using ModPlusAPI.Mvvm;
+
+/// <summary>
+/// Модель представления категории
+/// </summary>
+public class CategoryModel : ObservableObject, IEquatable<CategoryModel>
 {
-    using System;
-    using Autodesk.Revit.DB;
-    using ModPlusAPI.Mvvm;
+    private bool _isChoose;
 
     /// <summary>
-    /// Модель представления категории
+    /// Initializes a new instance of the <see cref="CategoryModel"/> class.
     /// </summary>
-    public class CategoryModel : ObservableObject, IEquatable<CategoryModel>
+    /// <param name="elementCategory">Категория элементов</param>
+    public CategoryModel(Category elementCategory)
     {
-        private bool _isChoose;
+        Name = elementCategory.Name;
+        ElementCategory = elementCategory;
+    }
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="CategoryModel"/> class.
-        /// </summary>
-        /// <param name="elementCategory">Категория элементов</param>
-        public CategoryModel(Category elementCategory)
+    /// <summary>
+    /// Текстовое представление имени категории
+    /// </summary>
+    public string Name { get; }
+
+    /// <summary>
+    /// Категория элементов
+    /// </summary>
+    public Category ElementCategory { get; }
+
+    /// <summary>
+    /// Выбор категории
+    /// </summary>
+    public bool IsChoose
+    {
+        get => _isChoose;
+        set
         {
-            Name = elementCategory.Name;
-            ElementCategory = elementCategory;
+            _isChoose = value;
+            OnPropertyChanged();
         }
+    }
 
-        /// <summary>
-        /// Текстовое представление имени категории
-        /// </summary>
-        public string Name { get; }
+    /// <inheritdoc/>
+    public bool Equals(CategoryModel other)
+    {
+        if (ReferenceEquals(null, other)) 
+            return false;
+        if (ReferenceEquals(this, other))
+            return true;
+        return Name == other.Name;
+    }
 
-        /// <summary>
-        /// Категория элементов
-        /// </summary>
-        public Category ElementCategory { get; }
-
-        /// <summary>
-        /// Выбор категории
-        /// </summary>
-        public bool IsChoose
-        {
-            get => _isChoose;
-            set
-            {
-                _isChoose = value;
-                OnPropertyChanged();
-            }
-        }
-
-        /// <inheritdoc/>
-        public bool Equals(CategoryModel other)
-        {
-            if (ReferenceEquals(null, other)) 
-                return false;
-            if (ReferenceEquals(this, other))
-                return true;
-            return Name == other.Name;
-        }
-
-        /// <inheritdoc/>
-        public override int GetHashCode()
-        {
-            return Name != null ? Name.GetHashCode() : 0;
-        }
+    /// <inheritdoc/>
+    public override int GetHashCode()
+    {
+        return Name != null ? Name.GetHashCode() : 0;
     }
 }

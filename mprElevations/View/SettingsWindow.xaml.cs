@@ -1,27 +1,26 @@
-﻿namespace mprElevations.View
+﻿namespace mprElevations.View;
+
+/// <summary>
+/// Логика взаимодействия для SettingsWindow.xaml
+/// </summary>
+public partial class SettingsWindow
 {
     /// <summary>
-    /// Логика взаимодействия для SettingsWindow.xaml
+    /// Initializes a new instance of the <see cref="SettingsWindow"/> class.
     /// </summary>
-    public partial class SettingsWindow
+    public SettingsWindow()
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="SettingsWindow"/> class.
-        /// </summary>
-        public SettingsWindow()
-        {
-            InitializeComponent();
-            Title = ModPlusAPI.Language.GetFunctionLocalName(ModPlusConnector.Instance);
-        }
+        InitializeComponent();
+        Title = ModPlusAPI.Language.GetPluginLocalName(ModPlusConnector.Instance);
+    }
 
-        private void Button_Apply_Click(object sender, System.Windows.RoutedEventArgs e)
-        {
-            DialogResult = true;
-        }
+    private void Button_Apply_Click(object sender, System.Windows.RoutedEventArgs e)
+    {
+        DialogResult = true;
+    }
 
-        private void Button_Cancel_Click(object sender, System.Windows.RoutedEventArgs e)
-        {
-            DialogResult = false;
-        }
+    private void Button_Cancel_Click(object sender, System.Windows.RoutedEventArgs e)
+    {
+        DialogResult = false;
     }
 }
